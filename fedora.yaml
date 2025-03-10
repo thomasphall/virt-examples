@@ -1,0 +1,44 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  name: fedora-vm
+  labels:
+    app: fedora-vm
+spec:
+  terminationGracePeriodSeconds: 30
+  domain:
+    devices:
+      disks:
+      - name: containerdisk
+        disk:
+          bus: virtio
+      - name: cloudinitdisk
+        disk:
+          bus: virtio
+      interfaces:
+      - name: default
+        masquerade: {}
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1
+    machine:
+      type: q35
+  networks:
+  - name: default
+    pod: {}
+  volumes:
+  - name: containerdisk
+    containerDisk:
+      image: quay.io/containerdisks/fedora:latest
+  - name: cloudinitdisk
+    cloudInitNoCloud:
+      userData: |
+        #cloud-config
+        password: fedora
+        chpasswd: { expire: False }
+        ssh_pwauth: True
+        packages:
+          - qemu-guest-agent
+        runcmd:
+          - [ systemctl, enable, --now, qemu-guest-agent ]
