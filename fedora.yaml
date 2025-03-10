@@ -2,6 +2,7 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachineInstance
 metadata:
   name: fedora-vm
+  namespace: hall-dev
   labels:
     app: fedora-vm
 spec:
