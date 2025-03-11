@@ -1,0 +1,50 @@
+# vm-fedora.yaml
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-fedora
+  labels:
+    kubevirt.io/vm: vm-fedora
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: vm-fedora
+    spec:
+      domain:
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 1
+        devices:
+          disks:
+          - name: containerdisk
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            disk:
+              bus: virtio
+          interfaces:
+          - name: default
+            masquerade: {}
+        machine:
+          type: q35
+      networks:
+      - name: default
+        pod: {}
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/containerdisks/fedora:latest
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+              ssh_pwauth: True
+              runcmd:
+                - [ dnf, update, -y ]
+                - [ systemctl, enable, sshd ]
+                - [ systemctl, start, sshd ]
